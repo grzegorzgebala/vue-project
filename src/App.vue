@@ -8,9 +8,20 @@
     </transition>
     <Claim v-if="step === 0" />
     <SearchInput v-model="searchValue" @input="handleInput" :dark="step === 1" />
-    <div class="result" v-if="results && !loading && step === 1">
-      <Item v-for="item in results" :item="item" :key="item.data[0].nasa_id" />
+    <div class="results" v-if="results && !loading && step === 1">
+      <Item
+        v-for="item in results"
+        :item="item"
+        :key="item.data[0].nasa_id"
+        @click.native="handleModalOpen(item)"
+      />
     </div>
+    <div class="loader" v-if="step === 1 && loading"/>
+    <Modal
+      v-if="modalOpen"
+      @closeModal="modalOpen = false"
+      :item="modalItem"
+    />
   </div>
 </template>
 
@@ -21,6 +32,7 @@ import Claim from '@/components/Claim.vue';
 import SearchInput from '@/components/SearchInput.vue';
 import HeroImage from '@/components/HeroImage.vue';
 import Item from '@/components/Item.vue';
+import Modal from '@/components/Modal.vue';
 
 const API = 'https://images-api.nasa.gov/search';
 
@@ -31,9 +43,12 @@ export default {
     SearchInput,
     HeroImage,
     Item,
+    Modal,
   },
   data() {
     return {
+      modalOpen: false,
+      modalItem: null,
       loading: false,
       step: 0,
       searchValue: '',
@@ -41,6 +56,10 @@ export default {
     };
   },
   methods: {
+    handleModalOpen(item) {
+      this.modalOpen = true;
+      this.modalItem = item;
+    },
     // eslint-disable-next-line
     handleInput: debounce(function () {
       this.loading = true;
@@ -61,9 +80,9 @@ export default {
 <style lang="scss">
   @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;800&display=swap');
   * {
-    box-sizing: border-box;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   }
 
   body {
@@ -89,25 +108,72 @@ export default {
   }
 
   .wrapper {
-    display: flex;
+    margin: 0;
     position: relative;
+    width: 100%;
+    min-height: 100vh;
+    padding: 30px;
+    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin: 0;
-    padding: 30px;
-    width: 100%;
-    height: 100vh;
-    min-height: 100vh;
 
     &.flexStart {
       justify-content: flex-start;
     }
   }
 
+  .loader {
+    margin-top: 100px;
+    display: inline-block;
+    width: 64px;
+    height: 64px;
+
+    @media (min-width: 768px) {
+      width: 90px;
+      height: 90px;
+    }
+  }
+  .loader:after {
+    content: " ";
+    display: block;
+    width: 46px;
+    height: 46px;
+    margin: 1px;
+    border-radius: 50%;
+    border: 5px solid #1e3d4a;
+    border-color: #1e3d4a transparent #1e3d4a transparent;
+    animation: loading 1.2s linear infinite;
+
+    @media (min-width: 768px) {
+      width: 90px;
+      height: 90px;
+    }
+  }
+  @keyframes loading {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
   .logo {
     position: absolute;
     top: 30px;
+  }
+
+  .results {
+    margin-top: 50px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 20px;
+
+    @media (min-width: 768px) {
+      width: 90%;
+      grid-template-columns: 1fr 1fr 1fr;
+    }
   }
 
 </style>
